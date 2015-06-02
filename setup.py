@@ -70,8 +70,9 @@ if __name__ == "__main__":
           ext_modules = [
               Extension("scikits.sparse.cholmod",
                         ["scikits/sparse/cholmod.pyx"],
-                        libraries=["amd", "camd", "cholmod", "colamd"],
-                        include_dirs=[np.get_include()],
+                        libraries=["amd", "camd", "cholmod", "colamd", "blas"],
+                        include_dirs=[np.get_include(),
+                                      "/usr/include/suitesparse"],  # for Linux
                         # If your CHOLMOD is in a funny place, you may need to
                         # add something like this:
                         #library_dirs=["/opt/suitesparse/lib"],
