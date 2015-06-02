@@ -72,7 +72,7 @@ cdef inline np.ndarray set_base(np.ndarray arr, object base):
     hack.base = <void *> base
     return arr
 
-cdef extern from "suitesparse/cholmod.h":
+cdef extern from "cholmod.h":
     cdef enum:
         CHOLMOD_INT
         CHOLMOD_PATTERN, CHOLMOD_REAL, CHOLMOD_COMPLEX
@@ -87,7 +87,7 @@ cdef extern from "suitesparse/cholmod.h":
         int status
         int print_ "print"
         void (*error_handler)(int status, char * file, int line, char * msg)
-        
+
     int cholmod_start(cholmod_common *) except? 0
     int cholmod_finish(cholmod_common *) except? 0
     int cholmod_check_common(cholmod_common *) except? 0
@@ -145,18 +145,18 @@ cdef extern from "suitesparse/cholmod.h":
                                          cholmod_common *) except? NULL
     int cholmod_updown(int update, cholmod_sparse *, cholmod_factor *,
                          cholmod_common *) except? 0
-    
+
     cholmod_dense * cholmod_solve(int, cholmod_factor *,
                                     cholmod_dense *, cholmod_common *) except? NULL
     cholmod_sparse * cholmod_spsolve(int, cholmod_factor *,
                                        cholmod_sparse *, cholmod_common *) except? NULL
-    
+
     int cholmod_change_factor(int to_xtype, int to_ll, int to_super,
                                 int to_packed, int to_monotonic,
                                 cholmod_factor *, cholmod_common *) except? 0
     cholmod_sparse * cholmod_factor_to_sparse(cholmod_factor *,
                                                 cholmod_common *) except? NULL
-    
+
 cdef class Common
 cdef class Factor
 
@@ -314,7 +314,7 @@ cdef class Common(object):
         print cholmod_check_common(&self._common)
         name = repr(self)
         return cholmod_print_common(name, &self._common)
-        
+
     def _print_sparse(self, name, symmetric, matrix):
         cdef cholmod_sparse * m
         ref = self._view_sparse(matrix, symmetric, &m)
@@ -570,7 +570,7 @@ cdef class Factor(object):
              factorization just to extract `D`.
 
         """
-        
+
         if self._factor.xtype == CHOLMOD_PATTERN:
             raise CholmodError, ("cannot extract diagonal from a symbolic "
                                  "factor; call a cholesky*() method first.")
@@ -725,7 +725,7 @@ cdef class Factor(object):
     # CHOLMOD API is quite confusing here -- unlike all the other solve
     # magic constants, CHOLMOD_P and CHOLMOD_Pt actually apply the matrix to b
     # rather than performing a matrix solve. Basically their names are
-    # backwards... therefore let's 
+    # backwards... therefore let's
     def apply_P(self, b):
         "Returns :math:`x`, where :math:`x = Pb`."
         return self._solve(b, CHOLMOD_P)
@@ -776,7 +776,7 @@ cdef class Factor(object):
         if ndim == 1:
             py_out = py_out[:, 0]
         return py_out
-        
+
     def slogdet(self):
         """Computes the log-determinant of the matrix A, with the same API as
         :meth:`numpy.linalg.slogdet`.
@@ -817,7 +817,7 @@ cdef class Factor(object):
           .. warning:: For most purposes, it is better to use :meth:`solve`
              instead of computing the inverse explicitly. That is, the
              following two pieces of code produce identical results::
-    
+
                x = f.solve(b)
                x = f.inv() * b  # DON'T DO THIS!
 
